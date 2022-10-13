@@ -10,11 +10,11 @@
 #include <sl_wfx.h>
 #undef BIT
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
-#include <zephyr.h>
-#include <net/wifi_mgmt.h>
+#include <zephyr/kernel.h>
+#include <zephyr/net/wifi_mgmt.h>
 
 #include <wfx200_internal.h>
 

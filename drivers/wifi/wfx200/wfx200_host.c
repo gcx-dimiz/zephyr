@@ -10,17 +10,17 @@
 #include <sl_wfx.h>
 #undef BIT
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
 #include <stdarg.h>
 #include <stdint.h>
 
-#include <zephyr.h>
-#include <device.h>
-#include <sys/util.h>
-#include <drivers/spi.h>
-#include <drivers/gpio.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/gpio.h>
 
 #include "wfx200_internal.h"
 

@@ -12,11 +12,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <device.h>
-#include <drivers/gpio.h>
-#include <drivers/spi.h>
-#include <net/ethernet.h>
-#include <net/wifi_mgmt.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/net/ethernet.h>
+#include <zephyr/net/wifi_mgmt.h>
 
 #include <sl_wfx_constants.h>
 
