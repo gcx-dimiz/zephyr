@@ -250,7 +250,7 @@ int wfx200_ap_enable(const struct device *dev, struct wifi_connect_req_params *p
 
 	result = sl_wfx_start_ap_command(
 		params->channel,
-		params->ssid,
+		(uint8_t*)params->ssid,
 		params->ssid_length,
 		0,
 		0,
