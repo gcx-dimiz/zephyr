@@ -5,6 +5,7 @@
 menuconfig WIFI_WFX200
 	bool "SiLabs WFX200 support"
 	select HAS_SILABS_WFX_FMAC
+	select WIFI_USE_NATIVE_NETWORKING
 	depends on NET_L2_WIFI_MGMT
 	depends on WIFI_OFFLOAD
 	depends on NET_L2_ETHERNET

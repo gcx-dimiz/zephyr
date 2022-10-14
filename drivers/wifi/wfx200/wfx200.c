@@ -175,7 +175,7 @@ int wfx200_connect(const struct device *dev, struct wifi_connect_req_params *par
 		channel = 0;
 	}
 
-	LOG_INF("Connecting to %s on channel %d", log_strdup(ssid), channel);
+	LOG_INF("Connecting to %s on channel %d", ssid, channel);
 
 	result = sl_wfx_send_join_command(params->ssid,
 					  params->ssid_length,
@@ -293,7 +293,7 @@ int wfx200_ap_disable(const struct device *dev)
 }
 
 static const struct net_wifi_mgmt_offload api_funcs = {
-	.wifi_api.eth_api = {
+	.wifi_iface = {
 		.iface_api.init = wfx200_iface_init,
 		.send = wfx200_send,
 		.get_capabilities = wfx200_get_capabilities,
