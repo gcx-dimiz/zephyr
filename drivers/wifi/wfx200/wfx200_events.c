@@ -5,7 +5,7 @@
  */
 
 #define LOG_MODULE_NAME wifi_wfx200_event
-#define LOG_LEVEL CONFIG_WIFI_LOG_LEVEL
+#define LOG_LEVEL	CONFIG_WIFI_LOG_LEVEL
 
 #include <sl_wfx.h>
 #undef BIT
@@ -33,7 +33,8 @@ void wfx200_event_thread(void *p1, void *p2, void *p3)
 		switch (event->ev) {
 		case WFX200_CONNECT_EVENT:
 			if (context->state == WFX200_STATE_STA_MODE) {
-				net_if_set_link_addr(context->iface, context->sl_context.mac_addr_0.octet,
+				net_if_set_link_addr(context->iface,
+						     context->sl_context.mac_addr_0.octet,
 						     sizeof(context->sl_context.mac_addr_0.octet),
 						     NET_LINK_ETHERNET);
 				net_eth_carrier_on(context->iface);
@@ -42,14 +43,13 @@ void wfx200_event_thread(void *p1, void *p2, void *p3)
 			if (IS_ENABLED(CONFIG_WIFI_WFX200_SLEEP) &&
 			    !(context->sl_context.state & SL_WFX_AP_INTERFACE_UP)) {
 				/* Enable the power save */
-				sl_wfx_set_power_mode(IS_ENABLED(WIFI_WFX200_PM_MODE_PS) ?
-						      WFM_PM_MODE_PS :
-						      WFM_PM_MODE_DTIM,
-						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD) ?
-						      WFM_PM_POLL_UAPSD :
-						      WFM_PM_POLL_FAST_PS,
-						      CONFIG_WIFI_WFX200_DTIM_SKIP_INTERVAL
-						      );
+				sl_wfx_set_power_mode(IS_ENABLED(WIFI_WFX200_PM_MODE_PS)
+							      ? WFM_PM_MODE_PS
+							      : WFM_PM_MODE_DTIM,
+						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD)
+							      ? WFM_PM_POLL_UAPSD
+							      : WFM_PM_POLL_FAST_PS,
+						      CONFIG_WIFI_WFX200_DTIM_SKIP_INTERVAL);
 				sl_wfx_enable_device_power_save();
 			}
 			break;
@@ -68,21 +68,22 @@ void wfx200_event_thread(void *p1, void *p2, void *p3)
 			break;
 		case WFX200_AP_START_EVENT:
 			if (context->state == WFX200_STATE_AP_MODE) {
-				net_if_set_link_addr(context->iface, context->sl_context.mac_addr_1.octet,
+				net_if_set_link_addr(context->iface,
+						     context->sl_context.mac_addr_1.octet,
 						     sizeof(context->sl_context.mac_addr_1.octet),
 						     NET_LINK_ETHERNET);
 				net_eth_carrier_on(context->iface);
 			} else {
-				LOG_WRN("AP interface came up but interface wasn't set up correctly");
+				LOG_WRN("AP interface came up but interface wasn't set up "
+					"correctly");
 			}
 			if (IS_ENABLED(CONFIG_WIFI_WFX200_SLEEP)) {
 				/* Power save always disabled when SoftAP mode enabled */
 				sl_wfx_set_power_mode(WFM_PM_MODE_ACTIVE,
-						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD) ?
-						      WFM_PM_POLL_UAPSD :
-						      WFM_PM_POLL_FAST_PS,
-						      0
-						      );
+						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD)
+							      ? WFM_PM_POLL_UAPSD
+							      : WFM_PM_POLL_FAST_PS,
+						      0);
 				sl_wfx_disable_device_power_save();
 			}
 			break;
@@ -99,14 +100,13 @@ void wfx200_event_thread(void *p1, void *p2, void *p3)
 			if (IS_ENABLED(CONFIG_WIFI_WFX200_SLEEP) &&
 			    context->sl_context.state & SL_WFX_STA_INTERFACE_CONNECTED) {
 				/* Enable the power save */
-				sl_wfx_set_power_mode(IS_ENABLED(WIFI_WFX200_PM_MODE_PS) ?
-						      WFM_PM_MODE_PS :
-						      WFM_PM_MODE_DTIM,
-						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD) ?
-						      WFM_PM_POLL_UAPSD :
-						      WFM_PM_POLL_FAST_PS,
-						      CONFIG_WIFI_WFX200_DTIM_SKIP_INTERVAL
-						      );
+				sl_wfx_set_power_mode(IS_ENABLED(WIFI_WFX200_PM_MODE_PS)
+							      ? WFM_PM_MODE_PS
+							      : WFM_PM_MODE_DTIM,
+						      IS_ENABLED(WIFI_WFX200_PM_POLL_STRATEGY_UAPSD)
+							      ? WFM_PM_POLL_UAPSD
+							      : WFM_PM_POLL_FAST_PS,
+						      CONFIG_WIFI_WFX200_DTIM_SKIP_INTERVAL);
 				sl_wfx_enable_device_power_save();
 			}
 			break;

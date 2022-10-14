@@ -9,8 +9,8 @@
 
 #define DT_DRV_COMPAT silabs_wfx200
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
@@ -20,10 +20,10 @@
 
 #include <sl_wfx_constants.h>
 
-#define INST_HAS_HIF_SEL_OR(inst) DT_INST_NODE_HAS_PROP(inst, hif_sel_gpios) ||
+#define INST_HAS_HIF_SEL_OR(inst)  DT_INST_NODE_HAS_PROP(inst, hif_sel_gpios) ||
 #define ANY_INST_HAS_HIF_SEL_GPIOS DT_INST_FOREACH_STATUS_OKAY(INST_HAS_HIF_SEL_OR) 0
 
-#define INST_HAS_WAKE_OR(inst) DT_INST_NODE_HAS_PROP(inst, wake_gpios) ||
+#define INST_HAS_WAKE_OR(inst)	DT_INST_NODE_HAS_PROP(inst, wake_gpios) ||
 #define ANY_INST_HAS_WAKE_GPIOS DT_INST_FOREACH_STATUS_OKAY(INST_HAS_WAKE_OR) 0
 
 struct wfx200_config {

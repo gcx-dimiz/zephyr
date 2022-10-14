@@ -5,7 +5,7 @@
  */
 
 #define LOG_MODULE_NAME wifi_wfx200_host
-#define LOG_LEVEL CONFIG_WIFI_LOG_LEVEL
+#define LOG_LEVEL	CONFIG_WIFI_LOG_LEVEL
 
 #include <sl_wfx.h>
 #undef BIT
@@ -13,16 +13,16 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
+#include "wfx200_internal.h"
+
 #include <stdarg.h>
 #include <stdint.h>
 
-#include <zephyr/kernel.h>
 #include <zephyr/device.h>
-#include <zephyr/sys/util.h>
-#include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/gpio.h>
-
-#include "wfx200_internal.h"
+#include <zephyr/drivers/spi.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/util.h>
 
 #include <sl_wfx_wf200_C0.h>
 
@@ -45,7 +45,8 @@ void sl_wfx_scan_complete_callback(sl_wfx_scan_complete_ind_t *scan_complete);
 void sl_wfx_generic_status_callback(sl_wfx_generic_ind_t *frame);
 void sl_wfx_ap_client_connected_callback(sl_wfx_ap_client_connected_ind_t *ap_client_connected);
 void sl_wfx_ap_client_rejected_callback(sl_wfx_ap_client_rejected_ind_t *ap_client_rejected);
-void sl_wfx_ap_client_disconnected_callback(sl_wfx_ap_client_disconnected_ind_t *ap_client_disconnected);
+void sl_wfx_ap_client_disconnected_callback(
+	sl_wfx_ap_client_disconnected_ind_t *ap_client_disconnected);
 void sl_wfx_ext_auth_callback(sl_wfx_ext_auth_ind_t *ext_auth_indication);
 
 /**
@@ -136,7 +137,7 @@ sl_status_t sl_wfx_host_set_wake_up_pin(uint8_t state)
 
 #if ANY_INST_HAS_WAKE_GPIOS
 	if (config->wakeup != NULL) {
-		gpio_pin_set_dt(config->wakeup, state?1:0);
+		gpio_pin_set_dt(config->wakeup, state ? 1 : 0);
 	} else {
 		LOG_WRN("Set wake up pin requested, but wake up pin not configured");
 	}
@@ -170,8 +171,7 @@ sl_status_t sl_wfx_host_hold_in_reset(void)
 }
 
 sl_status_t sl_wfx_host_sleep_grant(sl_wfx_host_bus_transfer_type_t type,
-				    sl_wfx_register_address_t address,
-				    uint32_t length)
+				    sl_wfx_register_address_t address, uint32_t length)
 {
 	ARG_UNUSED(type);
 	ARG_UNUSED(address);
@@ -209,8 +209,7 @@ sl_status_t sl_wfx_host_setup_waited_event(uint8_t event_id)
 	return SL_STATUS_OK;
 }
 
-sl_status_t sl_wfx_host_wait_for_confirmation(uint8_t confirmation_id,
-					      uint32_t timeout_ms,
+sl_status_t sl_wfx_host_wait_for_confirmation(uint8_t confirmation_id, uint32_t timeout_ms,
 					      void **event_payload_out)
 {
 	k_mutex_lock(&wfx200_0->event_mutex, K_FOREVER);
@@ -219,7 +218,8 @@ sl_status_t sl_wfx_host_wait_for_confirmation(uint8_t confirmation_id,
 			LOG_DBG("Confirmation waiter wasn't set up, now waiting for event 0x%02x",
 				confirmation_id);
 		} else {
-			LOG_WRN("Confirmation waiter set up to wait for event 0x%02x but waiting for 0x%02x",
+			LOG_WRN("Confirmation waiter set up to wait for event 0x%02x but waiting "
+				"for 0x%02x",
 				wfx200_0->waited_event_id, confirmation_id);
 		}
 		k_sem_reset(&wfx200_0->event_sem);
@@ -257,41 +257,43 @@ sl_status_t sl_wfx_host_post_event(sl_wfx_generic_message_t *event_payload)
 	switch (event_payload->header.id) {
 	/******** INDICATION ********/
 	case SL_WFX_CONNECT_IND_ID:
-		sl_wfx_connect_callback((sl_wfx_connect_ind_t *) event_payload);
+		sl_wfx_connect_callback((sl_wfx_connect_ind_t *)event_payload);
 		break;
 	case SL_WFX_DISCONNECT_IND_ID:
-		sl_wfx_disconnect_callback((sl_wfx_disconnect_ind_t *) event_payload);
+		sl_wfx_disconnect_callback((sl_wfx_disconnect_ind_t *)event_payload);
 		break;
 	case SL_WFX_START_AP_IND_ID:
-		sl_wfx_start_ap_callback((sl_wfx_start_ap_ind_t *) event_payload);
+		sl_wfx_start_ap_callback((sl_wfx_start_ap_ind_t *)event_payload);
 		break;
 	case SL_WFX_STOP_AP_IND_ID:
-		sl_wfx_stop_ap_callback((sl_wfx_stop_ap_ind_t *) event_payload);
+		sl_wfx_stop_ap_callback((sl_wfx_stop_ap_ind_t *)event_payload);
 		break;
 	case SL_WFX_RECEIVED_IND_ID:
-		u.ethernet_frame = (sl_wfx_received_ind_t *) event_payload;
+		u.ethernet_frame = (sl_wfx_received_ind_t *)event_payload;
 		if (u.ethernet_frame->body.frame_type == 0) {
 			sl_wfx_host_received_frame_callback(u.ethernet_frame);
 		}
 		break;
 	case SL_WFX_SCAN_RESULT_IND_ID:
-		sl_wfx_scan_result_callback((sl_wfx_scan_result_ind_t *) event_payload);
+		sl_wfx_scan_result_callback((sl_wfx_scan_result_ind_t *)event_payload);
 		break;
 	case SL_WFX_SCAN_COMPLETE_IND_ID:
-		sl_wfx_scan_complete_callback((sl_wfx_scan_complete_ind_t *) event_payload);
+		sl_wfx_scan_complete_callback((sl_wfx_scan_complete_ind_t *)event_payload);
 		break;
 	case SL_WFX_AP_CLIENT_CONNECTED_IND_ID:
-		sl_wfx_ap_client_connected_callback((sl_wfx_ap_client_connected_ind_t *) event_payload);
+		sl_wfx_ap_client_connected_callback(
+			(sl_wfx_ap_client_connected_ind_t *)event_payload);
 		break;
 	case SL_WFX_AP_CLIENT_REJECTED_IND_ID:
-		sl_wfx_ap_client_rejected_callback((sl_wfx_ap_client_rejected_ind_t *) event_payload);
+		sl_wfx_ap_client_rejected_callback(
+			(sl_wfx_ap_client_rejected_ind_t *)event_payload);
 		break;
 	case SL_WFX_AP_CLIENT_DISCONNECTED_IND_ID:
 		sl_wfx_ap_client_disconnected_callback(
-			(sl_wfx_ap_client_disconnected_ind_t *) event_payload);
+			(sl_wfx_ap_client_disconnected_ind_t *)event_payload);
 		break;
 	case SL_WFX_EXT_AUTH_IND_ID:
-		sl_wfx_ext_auth_callback((sl_wfx_ext_auth_ind_t *) event_payload);
+		sl_wfx_ext_auth_callback((sl_wfx_ext_auth_ind_t *)event_payload);
 		break;
 	case SL_WFX_GENERIC_IND_ID:
 		break;
@@ -301,7 +303,8 @@ sl_status_t sl_wfx_host_post_event(sl_wfx_generic_message_t *event_payload)
 		LOG_DBG("Header: id(%hhx) info(%hhx)", u.firmware_exception->header.id,
 			u.firmware_exception->header.info);
 		LOG_HEXDUMP_DBG(u.firmware_exception->body.data,
-				u.firmware_exception->header.length - offsetof(sl_wfx_exception_ind_t, body.data),
+				u.firmware_exception->header.length -
+					offsetof(sl_wfx_exception_ind_t, body.data),
 				"Body data");
 		break;
 	case SL_WFX_ERROR_IND_ID:
@@ -310,24 +313,25 @@ sl_status_t sl_wfx_host_post_event(sl_wfx_generic_message_t *event_payload)
 		LOG_DBG("Header: id(%hhx) info(%hhx)", u.firmware_error->header.id,
 			u.firmware_error->header.info);
 		LOG_HEXDUMP_DBG(u.firmware_error->body.data,
-				u.firmware_error->header.length - offsetof(sl_wfx_error_ind_t, body.data),
+				u.firmware_error->header.length -
+					offsetof(sl_wfx_error_ind_t, body.data),
 				"Body data");
 		break;
 	}
 
 	k_mutex_lock(&wfx200_0->event_mutex, K_FOREVER);
 	if (wfx200_0->waited_event_id == event_payload->header.id) {
-		if (event_payload->header.length < sizeof(wfx200_0->sl_context.event_payload_buffer)) {
+		if (event_payload->header.length <
+		    sizeof(wfx200_0->sl_context.event_payload_buffer)) {
 			/* Post the event into the "queue".
 			 * Not using a queue here. The SiLabs examples use the queue similar to a
-			 * counting semaphore and are not passing the "queue" elements via the "queue"
-			 * but instead with a single buffer. So we can only communicate a single
-			 * element at the same time. The sample code also only adds elements to the "queue",
-			 * which it has been configured to explicit waiting for. A queue is therefore
-			 * not needed.
+			 * counting semaphore and are not passing the "queue" elements via the
+			 * "queue" but instead with a single buffer. So we can only communicate a
+			 * single element at the same time. The sample code also only adds elements
+			 * to the "queue", which it has been configured to explicit waiting for. A
+			 * queue is therefore not needed.
 			 * */
-			memcpy(wfx200_0->sl_context.event_payload_buffer,
-			       (void *) event_payload,
+			memcpy(wfx200_0->sl_context.event_payload_buffer, (void *)event_payload,
 			       event_payload->header.length);
 			k_sem_give(&wfx200_0->event_sem);
 		}
@@ -340,8 +344,8 @@ sl_status_t sl_wfx_host_post_event(sl_wfx_generic_message_t *event_payload)
 /* WFX host callbacks */
 void sl_wfx_connect_callback(sl_wfx_connect_ind_t *connect)
 {
-	struct wfx200_queue_event *event = k_heap_alloc(&wfx200_0->heap,
-							sizeof(struct wfx200_queue_event), K_NO_WAIT);
+	struct wfx200_queue_event *event =
+		k_heap_alloc(&wfx200_0->heap, sizeof(struct wfx200_queue_event), K_NO_WAIT);
 
 	if (event == NULL) {
 		/* TODO */
@@ -380,8 +384,8 @@ void sl_wfx_connect_callback(sl_wfx_connect_ind_t *connect)
 void sl_wfx_disconnect_callback(sl_wfx_disconnect_ind_t *disconnect)
 {
 	ARG_UNUSED(disconnect);
-	struct wfx200_queue_event *event = k_heap_alloc(&wfx200_0->heap,
-							sizeof(struct wfx200_queue_event), K_NO_WAIT);
+	struct wfx200_queue_event *event =
+		k_heap_alloc(&wfx200_0->heap, sizeof(struct wfx200_queue_event), K_NO_WAIT);
 
 	if (event == NULL) {
 		/* TODO */
@@ -397,8 +401,8 @@ void sl_wfx_disconnect_callback(sl_wfx_disconnect_ind_t *disconnect)
 
 void sl_wfx_start_ap_callback(sl_wfx_start_ap_ind_t *start_ap)
 {
-	struct wfx200_queue_event *event = k_heap_alloc(&wfx200_0->heap,
-							sizeof(struct wfx200_queue_event), K_NO_WAIT);
+	struct wfx200_queue_event *event =
+		k_heap_alloc(&wfx200_0->heap, sizeof(struct wfx200_queue_event), K_NO_WAIT);
 
 	if (event == NULL) {
 		/* TODO */
@@ -418,8 +422,8 @@ void sl_wfx_start_ap_callback(sl_wfx_start_ap_ind_t *start_ap)
 
 void sl_wfx_stop_ap_callback(sl_wfx_stop_ap_ind_t *stop_ap)
 {
-	struct wfx200_queue_event *event = k_heap_alloc(&wfx200_0->heap,
-							sizeof(struct wfx200_queue_event), K_NO_WAIT);
+	struct wfx200_queue_event *event =
+		k_heap_alloc(&wfx200_0->heap, sizeof(struct wfx200_queue_event), K_NO_WAIT);
 
 	ARG_UNUSED(stop_ap);
 
@@ -447,14 +451,16 @@ void sl_wfx_host_received_frame_callback(sl_wfx_received_ind_t *rx_buffer)
 	case WFX200_STATE_STA_MODE:
 		if ((rx_buffer->header.info & SL_WFX_MSG_INFO_INTERFACE_MASK) ==
 		    (SL_WFX_SOFTAP_INTERFACE << SL_WFX_MSG_INFO_INTERFACE_OFFSET)) {
-			LOG_WRN("Got ethernet packet from softap interface in sta mode. Dropping packet...");
+			LOG_WRN("Got ethernet packet from softap interface in sta mode. Dropping "
+				"packet...");
 			return;
 		}
 		break;
 	case WFX200_STATE_AP_MODE:
 		if ((rx_buffer->header.info & SL_WFX_MSG_INFO_INTERFACE_MASK) ==
 		    (SL_WFX_STA_INTERFACE << SL_WFX_MSG_INFO_INTERFACE_OFFSET)) {
-			LOG_WRN("Got ethernet packet from sta interface in ap mode. Dropping packet...");
+			LOG_WRN("Got ethernet packet from sta interface in ap mode. Dropping "
+				"packet...");
 			return;
 		}
 		break;
@@ -463,8 +469,8 @@ void sl_wfx_host_received_frame_callback(sl_wfx_received_ind_t *rx_buffer)
 			wfx200_state_to_str(wfx200_0->state));
 	}
 
-	pkt = net_pkt_rx_alloc_with_buffer(wfx200_0->iface, rx_buffer->body.frame_length,
-					   AF_UNSPEC, 0, K_NO_WAIT);
+	pkt = net_pkt_rx_alloc_with_buffer(wfx200_0->iface, rx_buffer->body.frame_length, AF_UNSPEC,
+					   0, K_NO_WAIT);
 	if (!pkt) {
 		LOG_ERR("Failed to get net buffer");
 		return;
@@ -489,19 +495,17 @@ void sl_wfx_scan_result_callback(sl_wfx_scan_result_ind_t *scan_result)
 {
 	struct sl_wfx_scan_result_ind_body_s *body = &scan_result->body;
 	int rssi = (body->rcpi / 2) - 110;
-	struct wifi_scan_result wifi_scan_result = { 0 };
+	struct wifi_scan_result wifi_scan_result = {0};
 
-	if (wfx200_0->state < WFX200_STATE_INTERFACE_INITIALIZED ||
-	    wfx200_0->scan_cb == NULL) {
+	if (wfx200_0->state < WFX200_STATE_INTERFACE_INITIALIZED || wfx200_0->scan_cb == NULL) {
 		return;
 	}
 	memcpy(wifi_scan_result.ssid, body->ssid_def.ssid,
 	       MIN(sizeof(wifi_scan_result.ssid), body->ssid_def.ssid_length));
 	wifi_scan_result.channel = body->channel;
 	wifi_scan_result.rssi = rssi;
-	wifi_scan_result.security = body->security_mode.psk ?
-				    WIFI_SECURITY_TYPE_PSK :
-				    WIFI_SECURITY_TYPE_NONE;
+	wifi_scan_result.security =
+		body->security_mode.psk ? WIFI_SECURITY_TYPE_PSK : WIFI_SECURITY_TYPE_NONE;
 	wfx200_0->scan_cb(wfx200_0->iface, 0, &wifi_scan_result);
 }
 
@@ -536,13 +540,8 @@ void sl_wfx_ap_client_connected_callback(sl_wfx_ap_client_connected_ind_t *ap_cl
 {
 	struct sl_wfx_ap_client_connected_ind_body_s *body = &ap_client_connected->body;
 
-	LOG_INF("Client %02x:%02x:%02x:%02x:%02x:%02x connected to AP",
-		body->mac[0],
-		body->mac[1],
-		body->mac[2],
-		body->mac[3],
-		body->mac[4],
-		body->mac[5]);
+	LOG_INF("Client %02x:%02x:%02x:%02x:%02x:%02x connected to AP", body->mac[0], body->mac[1],
+		body->mac[2], body->mac[3], body->mac[4], body->mac[5]);
 }
 
 void sl_wfx_ap_client_rejected_callback(sl_wfx_ap_client_rejected_ind_t *ap_client_rejected)
@@ -551,17 +550,13 @@ void sl_wfx_ap_client_rejected_callback(sl_wfx_ap_client_rejected_ind_t *ap_clie
 	LOG_DBG("%s", __func__);
 }
 
-void sl_wfx_ap_client_disconnected_callback(sl_wfx_ap_client_disconnected_ind_t *ap_client_disconnected)
+void sl_wfx_ap_client_disconnected_callback(
+	sl_wfx_ap_client_disconnected_ind_t *ap_client_disconnected)
 {
 	struct sl_wfx_ap_client_disconnected_ind_body_s *body = &ap_client_disconnected->body;
 
-	LOG_INF("Client %02x:%02x:%02x:%02x:%02x:%02x disconnected from AP",
-		body->mac[0],
-		body->mac[1],
-		body->mac[2],
-		body->mac[3],
-		body->mac[4],
-		body->mac[5]);
+	LOG_INF("Client %02x:%02x:%02x:%02x:%02x:%02x disconnected from AP", body->mac[0],
+		body->mac[1], body->mac[2], body->mac[3], body->mac[4], body->mac[5]);
 }
 
 void sl_wfx_ext_auth_callback(sl_wfx_ext_auth_ind_t *ext_auth_indication)
@@ -570,8 +565,7 @@ void sl_wfx_ext_auth_callback(sl_wfx_ext_auth_ind_t *ext_auth_indication)
 	LOG_DBG("%s", __func__);
 }
 
-sl_status_t sl_wfx_host_allocate_buffer(void **buffer,
-					sl_wfx_buffer_type_t type,
+sl_status_t sl_wfx_host_allocate_buffer(void **buffer, sl_wfx_buffer_type_t type,
 					uint32_t buffer_size)
 {
 	ARG_UNUSED(type);
@@ -657,31 +651,25 @@ sl_status_t sl_wfx_host_spi_cs_deassert(void)
 
 /* Despite its name cs will be handled by spi hardware */
 sl_status_t sl_wfx_host_spi_transfer_no_cs_assert(sl_wfx_host_bus_transfer_type_t type,
-						  uint8_t *header,
-						  uint16_t header_length,
-						  uint8_t *buffer,
-						  uint16_t buffer_length)
+						  uint8_t *header, uint16_t header_length,
+						  uint8_t *buffer, uint16_t buffer_length)
 {
 	const struct wfx200_config *config = wfx200_0->dev->config;
 	int err;
 	const struct spi_buf_set tx = {
-		.buffers = (const struct spi_buf[]){ {
-							     .buf = header,
-							     .len = header_length
-						     }, {
-							     .buf = buffer,
-							     .len = buffer_length
-						     }, },
-		.count = (type == SL_WFX_BUS_WRITE)?2:1,
+		.buffers =
+			(const struct spi_buf[]){
+				{.buf = header, .len = header_length},
+				{.buf = buffer, .len = buffer_length},
+			},
+		.count = (type == SL_WFX_BUS_WRITE) ? 2 : 1,
 	};
 	const struct spi_buf_set rx = {
-		.buffers = (const struct spi_buf[]){ {
-							     .buf = NULL,
-							     .len = header_length
-						     }, {
-							     .buf = buffer,
-							     .len = buffer_length
-						     }, },
+		.buffers =
+			(const struct spi_buf[]){
+				{.buf = NULL, .len = header_length},
+				{.buf = buffer, .len = buffer_length},
+			},
 		.count = 2,
 	};
 
@@ -718,10 +706,8 @@ void sl_wfx_host_log(const char *string, ...)
 		va_start(args, string);
 		ret = vsnprintf(log_buffer, sizeof(log_buffer), string, args);
 		if (ret >= sizeof(log_buffer)) {
-			memcpy(log_buffer + sizeof(log_buffer) -
-			       sizeof(TRUNCATED_MESSAGE),
-			       TRUNCATED_MESSAGE,
-			       sizeof(TRUNCATED_MESSAGE));
+			memcpy(log_buffer + sizeof(log_buffer) - sizeof(TRUNCATED_MESSAGE),
+			       TRUNCATED_MESSAGE, sizeof(TRUNCATED_MESSAGE));
 		}
 		log_buffer[sizeof(log_buffer) - 1] = 0;
 		LOG_DBG("wfx-fullmac-driver: %s", log_buffer);
